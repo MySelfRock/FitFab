@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\MaterialManagementController;
+use App\Http\Controllers\Admin\ProfessionalVerificationController;
+use App\Http\Controllers\Admin\TemplateManagementController;
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
@@ -76,4 +81,48 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/complete', [OrderController::class, 'complete'])->name('orders.complete');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/orders/stats', [OrderController::class, 'stats'])->name('orders.stats');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+
+    // User Management
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
+    Route::post('/users/{user}/update-role', [UserManagementController::class, 'updateRole'])->name('users.update-role');
+    Route::post('/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+    // Professional Verification
+    Route::get('/professionals', [ProfessionalVerificationController::class, 'index'])->name('professionals.index');
+    Route::get('/professionals/{professional}', [ProfessionalVerificationController::class, 'show'])->name('professionals.show');
+    Route::post('/professionals/{professional}/verify', [ProfessionalVerificationController::class, 'verify'])->name('professionals.verify');
+    Route::post('/professionals/{professional}/unverify', [ProfessionalVerificationController::class, 'unverify'])->name('professionals.unverify');
+    Route::post('/professionals/{professional}/toggle-active', [ProfessionalVerificationController::class, 'toggleActive'])->name('professionals.toggle-active');
+    Route::post('/professionals/{professional}/update-notes', [ProfessionalVerificationController::class, 'updateNotes'])->name('professionals.update-notes');
+
+    // Template Management
+    Route::get('/templates', [TemplateManagementController::class, 'index'])->name('templates.index');
+    Route::get('/templates/create', [TemplateManagementController::class, 'create'])->name('templates.create');
+    Route::post('/templates', [TemplateManagementController::class, 'store'])->name('templates.store');
+    Route::get('/templates/{template}/edit', [TemplateManagementController::class, 'edit'])->name('templates.edit');
+    Route::put('/templates/{template}', [TemplateManagementController::class, 'update'])->name('templates.update');
+    Route::delete('/templates/{template}', [TemplateManagementController::class, 'destroy'])->name('templates.destroy');
+    Route::post('/templates/{template}/toggle-active', [TemplateManagementController::class, 'toggleActive'])->name('templates.toggle-active');
+
+    // Material Management
+    Route::get('/materials', [MaterialManagementController::class, 'index'])->name('materials.index');
+    Route::get('/materials/create', [MaterialManagementController::class, 'create'])->name('materials.create');
+    Route::post('/materials', [MaterialManagementController::class, 'store'])->name('materials.store');
+    Route::get('/materials/{material}/edit', [MaterialManagementController::class, 'edit'])->name('materials.edit');
+    Route::put('/materials/{material}', [MaterialManagementController::class, 'update'])->name('materials.update');
+    Route::delete('/materials/{material}', [MaterialManagementController::class, 'destroy'])->name('materials.destroy');
+    Route::post('/materials/{material}/toggle-active', [MaterialManagementController::class, 'toggleActive'])->name('materials.toggle-active');
 });

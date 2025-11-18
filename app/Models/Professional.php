@@ -14,6 +14,9 @@ class Professional extends Model
     protected $fillable = [
         'user_id',
         'business_name',
+        'specialty',
+        'description',
+        'portfolio_url',
         'bio',
         'lat',
         'lng',
@@ -25,8 +28,16 @@ class Professional extends Model
         'services',
         'hourly_rate',
         'approved',
+        'active',
+        'verified',
+        'verified_at',
         'rating',
         'reviews_count',
+        'total_reviews',
+        'total_jobs',
+        'certifications',
+        'equipment',
+        'admin_notes',
     ];
 
     protected function casts(): array
@@ -38,8 +49,15 @@ class Professional extends Model
             'services' => 'array',
             'hourly_rate' => 'decimal:2',
             'approved' => 'boolean',
+            'active' => 'boolean',
+            'verified' => 'boolean',
+            'verified_at' => 'datetime',
             'rating' => 'decimal:2',
             'reviews_count' => 'integer',
+            'total_reviews' => 'integer',
+            'total_jobs' => 'integer',
+            'certifications' => 'array',
+            'equipment' => 'array',
         ];
     }
 
