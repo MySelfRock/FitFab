@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TemplateController;
 use Illuminate\Support\Facades\Route;
@@ -42,4 +43,9 @@ Route::middleware('auth')->group(function () {
 
     // Projects
     Route::resource('projects', ProjectController::class)->except(['edit', 'update']);
+    Route::post('/projects/{project}/regenerate', [ProjectController::class, 'regenerate'])->name('projects.regenerate');
+
+    // File Downloads
+    Route::get('/projects/{project}/download', [FileDownloadController::class, 'download'])->name('projects.download');
+    Route::get('/projects/{project}/download-all', [FileDownloadController::class, 'downloadAll'])->name('projects.downloadAll');
 });

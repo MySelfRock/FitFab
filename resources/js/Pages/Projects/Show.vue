@@ -32,11 +32,83 @@
                             </p>
                         </div>
                         <div v-if="project.status === 'ready'" class="flex items-center space-x-3">
+                            <!-- Download Dropdown -->
+                            <div class="relative">
+                                <button
+                                    @click="showDownloadMenu = !showDownloadMenu"
+                                    class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-700 focus:bg-primary-700 transition"
+                                >
+                                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Download
+                                    <svg class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div
+                                    v-show="showDownloadMenu"
+                                    @click="showDownloadMenu = false"
+                                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                                >
+                                    <div class="py-1">
+                                        <a
+                                            :href="route('projects.download', { project: project.id, format: 'csv' })"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            Download CSV
+                                        </a>
+                                        <a
+                                            :href="route('projects.download', { project: project.id, format: 'svg' })"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            Download SVG
+                                        </a>
+                                        <a
+                                            :href="route('projects.download', { project: project.id, format: 'pdf' })"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            Download PDF
+                                        </a>
+                                        <a
+                                            :href="route('projects.download', { project: project.id, format: 'dxf' })"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            Download DXF
+                                        </a>
+                                        <hr class="my-1">
+                                        <a
+                                            :href="route('projects.downloadAll', project.id)"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
+                                        >
+                                            Download Tudo (ZIP)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Regenerate Button -->
                             <button
-                                @click="downloadFile('csv')"
+                                @click="regenerateProject"
                                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 transition"
                             >
-                                Download CSV
+                                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Regenerar
+                            </button>
+                        </div>
+
+                        <!-- Failed State Actions -->
+                        <div v-if="project.status === 'failed'" class="flex items-center space-x-3">
+                            <button
+                                @click="regenerateProject"
+                                class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-700 transition"
+                            >
+                                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Tentar Novamente
                             </button>
                         </div>
                     </div>
@@ -52,6 +124,19 @@
                         <div>
                             <h3 class="text-sm font-medium text-yellow-800">Processando projeto...</h3>
                             <p class="mt-1 text-sm text-yellow-700">Estamos otimizando o corte das peças. Isso pode levar alguns minutos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Failed State -->
+                <div v-if="project.status === 'failed'" class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+                    <div class="flex items-center">
+                        <svg class="h-5 w-5 text-red-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-medium text-red-800">Erro ao processar projeto</h3>
+                            <p class="mt-1 text-sm text-red-700">Ocorreu um erro ao processar este projeto. Clique em "Tentar Novamente" para reprocessar.</p>
                         </div>
                     </div>
                 </div>
@@ -178,12 +263,15 @@
 </template>
 
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
-defineProps({
+const props = defineProps({
     project: Object,
 });
+
+const showDownloadMenu = ref(false);
 
 const getStatusLabel = (status) => {
     const labels = {
@@ -202,8 +290,11 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-const downloadFile = (format) => {
-    // Implement download logic
-    window.location.href = `/projects/${props.project.id}/download?format=${format}`;
+const regenerateProject = () => {
+    if (confirm('Deseja realmente regenerar este projeto? Isso irá reprocessar todos os cortes e arquivos.')) {
+        router.post(route('projects.regenerate', props.project.id), {}, {
+            preserveScroll: true,
+        });
+    }
 };
 </script>

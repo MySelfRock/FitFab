@@ -85,6 +85,28 @@ class ProjectController extends Controller
     }
 
     /**
+     * Regenerate the project (re-process cutlist and files).
+     */
+    public function regenerate(Project $project): RedirectResponse
+    {
+        $this->authorize('update', $project);
+
+        // Reset project status
+        $project->update(['status' => 'pending']);
+
+        // Delete existing pieces, sheets, and files
+        $project->pieces()->delete();
+        $project->sheets()->delete();
+        $project->files()->delete();
+
+        // Dispatch job to regenerate
+        GenerateProjectJob::dispatch($project);
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', 'Projeto em processamento. Aguarde alguns instantes...');
+    }
+
+    /**
      * Remove the specified project.
      */
     public function destroy(Project $project): RedirectResponse
