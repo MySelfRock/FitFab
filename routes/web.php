@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileDownloadController;
+use App\Http\Controllers\OfferController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TemplateController;
@@ -57,4 +59,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/professionals/{professional}', [ProfessionalController::class, 'show'])->name('professionals.show');
     Route::get('/professionals/{professional}/edit', [ProfessionalController::class, 'edit'])->name('professionals.edit');
     Route::put('/professionals/{professional}', [ProfessionalController::class, 'update'])->name('professionals.update');
+
+    // Offers
+    Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
+    Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
+    Route::post('/offers', [OfferController::class, 'store'])->name('offers.store');
+    Route::get('/offers/{offer}', [OfferController::class, 'show'])->name('offers.show');
+    Route::post('/offers/{offer}/accept', [OfferController::class, 'accept'])->name('offers.accept');
+    Route::post('/offers/{offer}/reject', [OfferController::class, 'reject'])->name('offers.reject');
+    Route::post('/projects/{project}/request-quotes', [OfferController::class, 'requestQuotes'])->name('offers.requestQuotes');
+
+    // Orders
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/pay', [OrderController::class, 'pay'])->name('orders.pay');
+    Route::post('/orders/{order}/complete', [OrderController::class, 'complete'])->name('orders.complete');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::get('/orders/stats', [OrderController::class, 'stats'])->name('orders.stats');
 });

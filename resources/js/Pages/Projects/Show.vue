@@ -87,6 +87,17 @@
                                 </div>
                             </div>
 
+                            <!-- Request Quote Button -->
+                            <button
+                                @click="showQuoteModal = true"
+                                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition"
+                            >
+                                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Solicitar Orçamento
+                            </button>
+
                             <!-- Regenerate Button -->
                             <button
                                 @click="regenerateProject"
@@ -97,6 +108,59 @@
                                 </svg>
                                 Regenerar
                             </button>
+                        </div>
+
+                        <!-- Quote Modal -->
+                        <div v-if="showQuoteModal" class="fixed inset-0 z-50 overflow-y-auto" @click.self="showQuoteModal = false">
+                            <div class="flex items-center justify-center min-h-screen px-4">
+                                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+                                <div class="relative bg-white rounded-lg max-w-lg w-full p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitar Orçamento</h3>
+                                    <p class="text-sm text-gray-600 mb-4">Notificaremos profissionais próximos sobre seu projeto.</p>
+
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Raio de busca (km)</label>
+                                            <input
+                                                v-model="quoteForm.radius_km"
+                                                type="range"
+                                                min="10"
+                                                max="200"
+                                                class="w-full"
+                                            />
+                                            <p class="text-sm text-gray-500 mt-1">{{ quoteForm.radius_km }} km</p>
+                                        </div>
+
+                                        <button
+                                            @click="getCurrentLocationForQuote"
+                                            :disabled="loadingLocation"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
+                                        >
+                                            <svg v-if="loadingLocation" class="animate-spin h-4 w-4 inline mr-2" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            {{ quoteForm.lat ? 'Localização Obtida' : 'Usar Minha Localização' }}
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-6 flex justify-end space-x-3">
+                                        <button
+                                            @click="showQuoteModal = false"
+                                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            @click="requestQuotes"
+                                            :disabled="!quoteForm.lat || !quoteForm.lng"
+                                            class="px-4 py-2 bg-primary-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                                        >
+                                            Enviar Notificações
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Failed State Actions -->
@@ -272,6 +336,13 @@ const props = defineProps({
 });
 
 const showDownloadMenu = ref(false);
+const showQuoteModal = ref(false);
+const loadingLocation = ref(false);
+const quoteForm = ref({
+    lat: null,
+    lng: null,
+    radius_km: 50,
+});
 
 const getStatusLabel = (status) => {
     const labels = {
@@ -296,5 +367,39 @@ const regenerateProject = () => {
             preserveScroll: true,
         });
     }
+};
+
+const getCurrentLocationForQuote = () => {
+    if (!navigator.geolocation) {
+        alert('Geolocalização não é suportada pelo seu navegador.');
+        return;
+    }
+
+    loadingLocation.value = true;
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            quoteForm.value.lat = position.coords.latitude;
+            quoteForm.value.lng = position.coords.longitude;
+            loadingLocation.value = false;
+        },
+        (error) => {
+            console.error('Erro ao obter localização:', error);
+            alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
+            loadingLocation.value = false;
+        }
+    );
+};
+
+const requestQuotes = () => {
+    router.post(route('offers.requestQuotes', props.project.id), {
+        lat: quoteForm.value.lat,
+        lng: quoteForm.value.lng,
+        radius_km: quoteForm.value.radius_km,
+    }, {
+        onSuccess: () => {
+            showQuoteModal.value = false;
+        },
+    });
 };
 </script>
