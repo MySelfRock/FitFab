@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileDownloadController;
+use App\Http\Controllers\ProfessionalController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TemplateController;
 use Illuminate\Support\Facades\Route;
@@ -48,4 +49,12 @@ Route::middleware('auth')->group(function () {
     // File Downloads
     Route::get('/projects/{project}/download', [FileDownloadController::class, 'download'])->name('projects.download');
     Route::get('/projects/{project}/download-all', [FileDownloadController::class, 'downloadAll'])->name('projects.downloadAll');
+
+    // Professionals
+    Route::get('/professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
+    Route::get('/professionals/create', [ProfessionalController::class, 'create'])->name('professionals.create');
+    Route::post('/professionals', [ProfessionalController::class, 'store'])->name('professionals.store');
+    Route::get('/professionals/{professional}', [ProfessionalController::class, 'show'])->name('professionals.show');
+    Route::get('/professionals/{professional}/edit', [ProfessionalController::class, 'edit'])->name('professionals.edit');
+    Route::put('/professionals/{professional}', [ProfessionalController::class, 'update'])->name('professionals.update');
 });
