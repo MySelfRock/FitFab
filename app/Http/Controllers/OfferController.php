@@ -118,6 +118,10 @@ class OfferController extends Controller
             'status' => 'pending',
         ]);
 
+        // Send notification to project owner
+        $offer->load(['professional', 'project']);
+        $project->user->notify(new \App\Notifications\OfferReceivedNotification($offer));
+
         return redirect()->route('offers.index')
             ->with('success', 'Proposta enviada com sucesso!');
     }
@@ -167,6 +171,11 @@ class OfferController extends Controller
             'platform_fee' => $offer->price * 0.15, // 15% platform fee
             'status' => 'pending',
         ]);
+
+        // Send notifications
+        $order->load(['user', 'professional.user', 'project']);
+        $order->user->notify(new \App\Notifications\OrderCreatedNotification($order, false));
+        $order->professional->user->notify(new \App\Notifications\OrderCreatedNotification($order, true));
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Proposta aceita! Prossiga para o pagamento.');

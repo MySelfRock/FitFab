@@ -86,7 +86,9 @@ class ProfessionalVerificationController extends Controller
             'verified_at' => now(),
         ]);
 
-        // TODO: Send notification email to professional
+        // Send notification email to professional
+        $professional->load('user');
+        $professional->user->notify(new \App\Notifications\ProfessionalVerifiedNotification($professional));
 
         return redirect()->back()
             ->with('success', 'Profissional verificado com sucesso!');

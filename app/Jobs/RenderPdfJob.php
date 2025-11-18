@@ -30,25 +30,26 @@ class RenderPdfJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(\App\Services\PdfGeneratorService $pdfService): void
     {
         Log::info("Starting PDF rendering for project {$this->project->id}");
 
         try {
             // Load relationships
-            $this->project->load(['pieces', 'sheets', 'material', 'user']);
+            $this->project->load(['pieces', 'sheets', 'material', 'user', 'template']);
 
-            // Generate HTML from blade template
-            $html = $this->generateHtml();
+            // Generate all PDFs using PdfGeneratorService
+            $paths = $pdfService->generateAllProjectPdfs($this->project);
 
-            // TODO: In production, use Browsershot/Puppeteer or DomPDF
-            // For now, save HTML as placeholder
-            $pdfContent = $this->convertHtmlToPdf($html);
+            Log::info("PDFs generated successfully for project {$this->project->id}", $paths);
 
-            // Save PDF file
-            $file = $this->savePdfFile($pdfContent);
+            // Update project status to completed
+            $this->project->update(['status' => 'completed']);
 
-            Log::info("PDF rendered successfully for project {$this->project->id}. File ID: {$file->id}");
+            // Send notification to user
+            $this->project->user->notify(new \App\Notifications\ProjectCompletedNotification($this->project));
+
+            Log::info("Notification sent to user {$this->project->user->id}");
         } catch (\Exception $e) {
             Log::error("Error rendering PDF for project {$this->project->id}: {$e->getMessage()}");
             throw $e;
