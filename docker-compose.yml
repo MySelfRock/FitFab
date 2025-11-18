@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitfab_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=fitfab
+      - DB_USERNAME=fitfab
+      - DB_PASSWORD=fitfab
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - FILESYSTEM_DISK=s3
+      - AWS_ENDPOINT=http://minio:9000
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_BUCKET=fitfab
+      - AWS_USE_PATH_STYLE_ENDPOINT=true
+    depends_on:
+      - db
+      - redis
+      - minio
+    networks:
+      - fitfab-network
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # Queue Worker
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitfab_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=local
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=fitfab
+      - DB_USERNAME=fitfab
+      - DB_PASSWORD=fitfab
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - db
+      - redis
+    networks:
+      - fitfab-network
+    command: php artisan queue:work --tries=3
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: fitfab_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fitfab
+      POSTGRES_USER: fitfab
+      POSTGRES_PASSWORD: fitfab
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fitfab-network
+
+  # Redis for Queue and Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fitfab_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fitfab-network
+
+  # MinIO for S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: fitfab_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - fitfab-network
+
+  # Horizon for Queue Monitoring
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitfab_horizon
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=local
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=fitfab
+      - DB_USERNAME=fitfab
+      - DB_PASSWORD=fitfab
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - db
+      - redis
+    networks:
+      - fitfab-network
+    command: php artisan horizon
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  fitfab-network:
+    driver: bridge
