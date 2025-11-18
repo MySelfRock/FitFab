@@ -1,0 +1,22 @@
+# Environment Configuration
+environment = "demo"
+aws_region  = "us-east-1"
+
+# EC2 Instance
+instance_type = "t3.medium" # 2 vCPU, 4 GB RAM
+key_name      = "fitfab-demo-key" # Nome da sua chave SSH na AWS
+
+# Database
+db_password = "FitFab2024SecurePassword!" # Altere para uma senha forte
+
+# Security - SSH and Service Access
+# Lista de IPs permitidos (vazio ou ["0.0.0.0/0"] = todos)
+allowed_ips = [
+  "203.0.113.0/24",    # Exemplo: IP do escritório
+  # "198.51.100.10/32", # Exemplo: Seu IP fixo
+]
+
+# Permitir acesso externo ao MySQL e Redis (cuidado!)
+# Útil se você quiser conectar clientes de banco de dados externos
+allow_external_mysql = false
+allow_external_redis = false

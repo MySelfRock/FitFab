@@ -1,0 +1,44 @@
+# Environment Configuration
+environment = "production"
+aws_region  = "us-east-1"
+
+# Domain and SSL
+domain_name     = "fitfab.com"
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+
+# EC2 Configuration
+instance_type        = "t3.medium"
+key_name             = "fitfab-production-key"
+asg_min_size         = 2
+asg_max_size         = 10
+asg_desired_capacity = 2
+
+# Database Configuration
+db_instance_class           = "db.t3.medium"
+db_name                     = "fitfab"
+db_username                 = "fitfab_admin"
+db_password                 = "CHANGE_ME_STRONG_PASSWORD_HERE"
+db_allocated_storage        = 100
+db_max_allocated_storage    = 500
+db_backup_retention_period  = 7
+
+# Redis Configuration
+redis_node_type       = "cache.t3.micro"
+redis_num_cache_nodes = 2
+
+# Application Configuration
+app_key          = "base64:GENERATE_WITH_php_artisan_key:generate"
+app_debug        = false
+mail_driver      = "ses"
+queue_connection = "redis"
+
+# Monitoring
+enable_cloudwatch_detailed_monitoring = true
+alarm_email                           = "devops@fitfab.com"
+
+# Security - SSH Access
+# Lista de IPs permitidos para SSH no bastion (vazio = todos)
+allowed_ssh_ips = [
+  "203.0.113.0/24",  # Exemplo: IP do escritório
+  # "198.51.100.10/32", # Exemplo: IP fixo de casa
+]
